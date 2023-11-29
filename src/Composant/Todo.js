@@ -40,7 +40,7 @@ export const Todo = (props) => {
         <Form titre='TO-DO NOW' nom='Add task' onSubmit={validation} value={todo} onChange={modification} />
         <div className='row'>
             <div className='col-sm-6 mx-auto mt-3'>
-                {
+                {Tasks &&
                     Tasks.map(task => {
                         return (<>
                                 <TodoListe />
