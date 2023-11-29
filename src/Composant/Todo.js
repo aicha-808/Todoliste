@@ -6,7 +6,7 @@ import { TodoListe } from './TodoListe';
 import { TodoItem } from './TodoItem';
 import iconeSup from "../image/trash3.svg";
 
-export const Todo = (props) => {
+export const Todo = () => {
   const [todo, setTodo] = useState("");
   const [Tasks, setAddTasks] = useState([]);
 
