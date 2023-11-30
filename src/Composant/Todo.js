@@ -1,54 +1,94 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.min.js';
 import { Form } from './Form';
-import { TodoListe } from './TodoListe';
 import { TodoItem } from './TodoItem';
 import iconeSup from "../image/trash3.svg";
 
 export const Todo = () => {
+  
   const [todo, setTodo] = useState("");
   const [Tasks, setAddTasks] = useState([]);
+  const [lastId, setLastId] = useState(0);
 
+  //Gestions des actions
   const modification = (e) => {
       setTodo(e.target.value);
   }
 
-  const validation = (e) => {
-      e.preventDefault()
-      if (e.target.value !== "") {
-        const newTask = {
-            id: Math.floor(Math.random() * 10),
-            value: todo
-         }
-        setAddTasks(prev => [...prev, newTask])
-      }else{
-        alert('veuillez saisir une tache')
+  useEffect(() => {
+    const items = (localStorage.getItem('item'))
+
+    if (items) {
+        setAddTasks(JSON.parse(items))
+    }
+    }, [])
+
+  const validation = (event) => {
+
+    event.preventDefault();
+
+    if (todo.trim() === '') {
+        return;
       }
-      setTodo('');
-  }
-  const supprimer = (id) => {
 
-       // Filtrer les éléments pour exclure celui avec l'ID spécifié
-      const supTask = Tasks.filter(tache => tache.id !== id);
+    const newTask = {
+        id: lastId + 1,
+        value: todo
+    }
 
-      // Mettre à jour l'état avec la nouvelle liste d'éléments
-          setAddTasks(supTask); 
-  }
+    setAddTasks(prev => [...prev, newTask])
+    setTodo("");
+    setLastId(lastId + 1);
+
+    // Sauvegarder dans le stockage local
+     const updatedTasks = [...Tasks, newTask];
+  
+    localStorage.setItem('item', JSON.stringify(updatedTasks))
+ }
+
+    //Gestion de l'action supprimer
+    const supprimer = (uid) => {
+        // Filtrer les éléments pour exclure celui avec l'ID spécifié
+        const supTask = Tasks.filter(tache => tache.id !== uid);
+
+        // Mettre à jour l'état avec la nouvelle liste d'éléments
+        setAddTasks(supTask); 
+        // Sauvegarder dans le stockage local
+  
+    localStorage.setItem('item', JSON.stringify(supTask))
+    }
+
   return (
     <div className="container-fluid p-5 text-light ">
-        <Form titre='TO-DO NOW' nom='Add task' onSubmit={validation} value={todo} onChange={modification} />
+        <div className='row'>
+            <h1 className='text-center'>TO-DO NOW</h1>
+            <div className='col-sm-6 mx-auto mt-3'>
+
+                <form onSubmit={validation}>
+
+                    <Form value={todo} onChange={modification} name="Add task"  nom='Add task'/>
+
+                </form>
+            </div>
+            <hr className="border-2 w-75 mx-auto mt-4" />
+        </div>    
         <div className='row'>
             <div className='col-sm-6 mx-auto mt-3'>
+
+            <ul className="list-group">
+
                 {Tasks &&
-                    Tasks.map(task => {
-                        return (<>
-                                <TodoListe />
-                                <TodoItem  key={task.id} value={task.value} onClick={supprimer} iconeSup={iconeSup} />
-                            </>
-                        )
-                    } )
-                }
+                        Tasks.map((task) => {
+                            return (
+
+                                <TodoItem key={task.id}  iconeSup={iconeSup} onClick={() => supprimer(task.id)}>
+                                {task.value} 
+                                </TodoItem>
+                            )
+                        } )
+                    }
+            </ul>
             </div>
         </div>
     </div>
