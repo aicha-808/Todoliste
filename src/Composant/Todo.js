@@ -3,17 +3,23 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.min.js';
 import { Form } from './Form';
 import { TodoItem } from './TodoItem';
-import iconeSup from "../image/trash3.svg";
+import supIone from "../image/trash3.svg";
+import editIcone from "../image/pencil.svg";
 
 export const Todo = () => {
   
-  const [todo, setTodo] = useState("");
-  const [Tasks, setAddTasks] = useState([]);
-  const [lastId, setLastId] = useState(0);
+    const [Tasks, setAddTasks] = useState([]);
+    const [editNameTask, setEditNameTask] = useState(null)
+    const [isedting, setIsEditing] = useState(false)
 
   //Gestions des actions
-  const modification = (e) => {
-      setTodo(e.target.value);
+  const addNewTask = (newTask) => {
+    setAddTasks(prev => [...prev, newTask])
+    
+     //Sauvegarder dans le stockage local
+    const updatedTasks = [...Tasks, newTask];
+    
+     localStorage.setItem('item', JSON.stringify(updatedTasks))
   }
 
   useEffect(() => {
@@ -24,31 +30,11 @@ export const Todo = () => {
     }
     }, [])
 
-  const validation = (event) => {
-
-    event.preventDefault();
-
-    if (todo.trim() === '') {
-        return;
-      }
-
-    const newTask = {
-        id: lastId + 1,
-        value: todo
-    }
-
-    setAddTasks(prev => [...prev, newTask])
-    setTodo("");
-    setLastId(lastId + 1);
-
-    // Sauvegarder dans le stockage local
-     const updatedTasks = [...Tasks, newTask];
-  
-    localStorage.setItem('item', JSON.stringify(updatedTasks))
- }
-
-    //Gestion de l'action supprimer
     const supprimer = (uid) => {
+         // Activer le mode édition pour la tâche sélectionnée
+        // const taskToEdit = Tasks.find(tache => tache.id === uid);
+        // setEditNameTask(taskToEdit);
+
         // Filtrer les éléments pour exclure celui avec l'ID spécifié
         const supTask = Tasks.filter(tache => tache.id !== uid);
 
@@ -56,20 +42,36 @@ export const Todo = () => {
         setAddTasks(supTask); 
         // Sauvegarder dans le stockage local
   
-    localStorage.setItem('item', JSON.stringify(supTask))
+        localStorage.setItem('item', JSON.stringify(supTask))
+    }
+    
+    const edit = (uid) => {
+        const taskToEdit = Tasks.find(tache => tache.id === uid);
+        setEditNameTask(taskToEdit);
+        setIsEditing(true);
     }
 
+    const updatedTask = (newTask) => {
+        const updatedTasks = Tasks.map(tache => (tache.id === newTask.id ? newTask : tache));
+        
+        setAddTasks(updatedTasks);
+
+        setIsEditing(false); 
+
+        // Sauvegarder dans le stockage local
+        localStorage.setItem('item', JSON.stringify(updatedTasks));
+       
+    }
+    
   return (
     <div className="container-fluid p-5 text-light ">
         <div className='row'>
             <h1 className='text-center'>TO-DO NOW</h1>
             <div className='col-sm-6 mx-auto mt-3'>
 
-                <form onSubmit={validation}>
-
-                    <Form value={todo} onChange={modification} name="Add task"  nom='Add task'/>
-
-                </form>
+                <Form addNewTask={addNewTask} editNameTask={editNameTask} isedting={isedting}
+                 updatedTask={updatedTask} nom={editNameTask? "Edit Task": " Add Task" }/>
+                  
             </div>
             <hr className="border-2 w-75 mx-auto mt-4" />
         </div>    
@@ -79,18 +81,19 @@ export const Todo = () => {
             <ul className="list-group">
 
                 {Tasks &&
-                        Tasks.map((task) => {
-                            return (
+                    Tasks.map((task) => {
+                        return (
 
-                                <TodoItem key={task.id}  iconeSup={iconeSup} onClick={() => supprimer(task.id)}>
-                                {task.value} 
-                                </TodoItem>
-                            )
-                        } )
-                    }
+                            <TodoItem key={task.id} iconeSup={supIone} onClickSupBout={() => supprimer(task.id)} 
+                               iconeEdit={editIcone} onClickEditBout={() => edit(task.id)}>
+                            {task.value} 
+                            </TodoItem>
+                        )
+                    } )
+                }
             </ul>
             </div>
         </div>
     </div>
-  );
+  )
 }
